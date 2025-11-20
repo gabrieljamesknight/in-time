@@ -1,9 +1,6 @@
 .
-├── assets
-│   ├── audio
-│   ├── maps
-│   ├── models
-│   └── textures
+├── dump_code.sh
+├── full_code_dump.txt
 ├── project.godot
 ├── project_structure.txt
 ├── scenes
@@ -11,10 +8,25 @@
 │   │   └── TestLevel.tscn
 │   └── player
 │       └── player.tscn
-└── scripts
-    ├── player
-    │   ├── player_controller.gd
-    │   └── player_controller.gd.uid
-    └── systems
+├── scripts
+│   ├── player
+│   │   ├── player_controller.gd
+│   │   ├── player_controller.gd.uid
+│   │   └── states
+│   │       ├── player_air.gd
+│   │       ├── player_air.gd.uid
+│   │       ├── player_bike.gd
+│   │       ├── player_bike.gd.uid
+│   │       ├── player_idle.gd
+│   │       ├── player_idle.gd.uid
+│   │       ├── player_run.gd
+│   │       └── player_run.gd.uid
+│   └── systems
+│       └── fsm
+│           ├── state.gd
+│           ├── state.gd.uid
+│           ├── state_machine.gd
+│           └── state_machine.gd.uid
+└── update_structure.sh
 
-12 directories, 6 files
+9 directories, 21 files

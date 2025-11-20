@@ -1,6 +1,11 @@
-[gd_scene load_steps=4 format=3 uid="uid://cbatlw163lxtd"]
+[gd_scene load_steps=9 format=3 uid="uid://cbatlw163lxtd"]
 
 [ext_resource type="Script" uid="uid://reo11socfco8" path="res://scripts/player/player_controller.gd" id="1_8afob"]
+[ext_resource type="Script" uid="uid://cnw3j7b3jho0t" path="res://scripts/systems/fsm/state_machine.gd" id="2_p47bc"]
+[ext_resource type="Script" uid="uid://be2l5b4ayayr4" path="res://scripts/player/states/player_idle.gd" id="3_75vfm"]
+[ext_resource type="Script" uid="uid://0dggr6bqwct3" path="res://scripts/player/states/player_run.gd" id="4_0owmy"]
+[ext_resource type="Script" uid="uid://ctswglpdkfxrt" path="res://scripts/player/states/player_air.gd" id="5_qek5x"]
+[ext_resource type="Script" uid="uid://d7d7c5fjoqlp" path="res://scripts/player/states/player_bike.gd" id="6_75vfm"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_dovo2"]
 
@@ -19,3 +24,19 @@ mesh = SubResource("CapsuleMesh_gmlin")
 
 [node name="Camera3D" type="Camera3D" parent="CamOrigin"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8753668, 2.038522)
+
+[node name="StateMachine" type="Node" parent="." node_paths=PackedStringArray("initial_state")]
+script = ExtResource("2_p47bc")
+initial_state = NodePath("Idle")
+
+[node name="Idle" type="Node" parent="StateMachine"]
+script = ExtResource("3_75vfm")
+
+[node name="Run" type="Node" parent="StateMachine"]
+script = ExtResource("4_0owmy")
+
+[node name="Air" type="Node" parent="StateMachine"]
+script = ExtResource("5_qek5x")
+
+[node name="Bike" type="Node" parent="StateMachine"]
+script = ExtResource("6_75vfm")
