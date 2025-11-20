@@ -10,6 +10,7 @@ config_version=5
 
 [application]
 
+config/name="In Time"
 config/features=PackedStringArray("4.5")
 
 [display]

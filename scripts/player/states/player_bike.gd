@@ -3,13 +3,17 @@ extends State
 # Bike specific settings
 var bike_speed = 12.0
 var acceleration = 4.0
-var friction = 2.0 # Lower friction = driftier handling
+var friction = 2.0 
 
+# Cooldown to prevent instant dismounting
 var dismount_cooldown = 0.2
 
 func enter() -> void:
 	print("State: Bike Mode Activated")
-	# Optional: Here is where you would swap the mesh to a bike model
+	# RESET cooldown so we don't instantly exit
+	dismount_cooldown = 0.2
+	
+	# Optional: Swap mesh here
 	# player.mesh.mesh = load("res://path/to/bike.obj")
 
 func exit() -> void:
@@ -17,7 +21,7 @@ func exit() -> void:
 	pass
 
 func physics_update(delta: float) -> void:
-# 1. Handle the Cooldown
+	# 1. Handle the Cooldown
 	if dismount_cooldown > 0:
 		dismount_cooldown -= delta
 		
@@ -45,7 +49,7 @@ func physics_update(delta: float) -> void:
 	
 	player.move_and_slide()
 	
-	# Dismount Logic (Press Jump to bail out?)
+	# Dismount Logic (Jump bail)
 	if Input.is_action_just_pressed("jump"):
 		player.velocity.y = player.jump_velocity
 		get_parent().change_state("air")

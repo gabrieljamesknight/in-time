@@ -5,7 +5,7 @@ extends CharacterBody3D
 @export var jump_velocity = 4.5
 @export var sensitivity = 0.01
 
-# Gravity from Project Settings [cite: 3]
+# Gravity from Project Settings
 var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 # -- COMPONENTS --
@@ -18,7 +18,7 @@ func _ready():
 	state_machine.init(self)
 
 func _unhandled_input(event):
-	# Camera logic stays here as it is independent of movement state
+	# Camera logic independent of movement state
 	if event is InputEventMouseMotion:
 		rotate_y(-event.relative.x * sensitivity)
 		cam_origin.rotate_x(-event.relative.y * sensitivity)
@@ -26,8 +26,6 @@ func _unhandled_input(event):
 		
 	if Input.is_action_just_pressed("ui_cancel"):
 		get_tree().quit()
-		
-	if Input.is_action_just_pressed("interact"): # Press E (or your interact key)
-		# Only toggle if we are on the floor for now
-		if is_on_floor():
-			state_machine.change_state("bike")
+
+	# NOTE: The "Interact" logic has been moved to player_idle.gd
+	# to prevents the "Instant Dismount" bug.
