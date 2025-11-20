@@ -1,6 +1,13 @@
 extends State
 
 func physics_update(delta: float) -> void:
+	if player.wall_detector.is_colliding():
+		var collider = player.wall_detector.get_collider()
+		# Only climb if the wall is in the "climbable" group AND we are holding Forward
+		if collider.is_in_group("climbable") and Input.is_action_pressed("move_forward"):
+			get_parent().change_state("climb")
+			return
+	
 	# Gravity
 	player.velocity.y -= player.gravity * delta
 

@@ -11,6 +11,7 @@ var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
 # -- COMPONENTS --
 @onready var cam_origin = $CamOrigin
 @onready var state_machine = $StateMachine
+@onready var wall_detector = $WallDetector
 
 func _ready():
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)

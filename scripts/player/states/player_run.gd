@@ -1,6 +1,13 @@
 extends State
 
 func physics_update(_delta: float) -> void:
+	# Transition: Climb
+	if player.wall_detector.is_colliding():
+		var collider = player.wall_detector.get_collider()
+		if collider.is_in_group("climbable") and Input.is_action_pressed("move_forward"):
+			get_parent().change_state("climb")
+			return
+	
 	# Transition: Air / Falling
 	if not player.is_on_floor():
 		get_parent().change_state("air")

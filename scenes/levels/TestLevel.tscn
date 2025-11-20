@@ -1,6 +1,9 @@
-[gd_scene load_steps=2 format=3 uid="uid://crifn7bewjubb"]
+[gd_scene load_steps=3 format=3 uid="uid://crifn7bewjubb"]
 
 [ext_resource type="PackedScene" uid="uid://cbatlw163lxtd" path="res://scenes/player/player.tscn" id="1_86d4f"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_86d4f"]
+albedo_color = Color(1, 1, 0.02745098, 1)
 
 [node name="TestLevel" type="Node3D"]
 
@@ -15,3 +18,9 @@ size = Vector3(1, 2, 1)
 
 [node name="Player" parent="." instance=ExtResource("1_86d4f")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.94779336, 1.5311221, 4.1481504)
+
+[node name="ClimbWall" type="CSGBox3D" parent="." groups=["climbable"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.7553401, 0.7158203, 0)
+use_collision = true
+size = Vector3(4, 7.4316406, 1)
+material = SubResource("StandardMaterial3D_86d4f")
