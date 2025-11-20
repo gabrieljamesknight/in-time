@@ -1,0 +1,20 @@
+# Godot 4.x specific ignores
+.godot/
+.import/
+export.cfg
+export_presets.cfg
+*.translation
+
+# Mono/C# (Just in case you switch later, good to have)
+.mono/
+*.csproj
+*.sln
+
+# Blender (Keep your repo clean of backup files)
+*.blend1
+*.blend@
+
+# OS specific
+.DS_Store
+Thumbs.db
+*~
