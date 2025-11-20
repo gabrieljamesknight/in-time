@@ -1,0 +1,20 @@
+.
+├── assets
+│   ├── audio
+│   ├── maps
+│   ├── models
+│   └── textures
+├── project.godot
+├── project_structure.txt
+├── scenes
+│   ├── levels
+│   │   └── TestLevel.tscn
+│   └── player
+│       └── player.tscn
+└── scripts
+    ├── player
+    │   ├── player_controller.gd
+    │   └── player_controller.gd.uid
+    └── systems
+
+12 directories, 6 files
