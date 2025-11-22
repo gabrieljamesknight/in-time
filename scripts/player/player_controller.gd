@@ -8,7 +8,9 @@ extends CharacterBody3D
 # Gravity from Project Settings
 var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
 
+# Shared Variables
 var current_interactable: Node = null
+var climb_lockout_timer: float = 0.0 # <--- NEW: Blocks climbing when > 0
 
 # -- COMPONENTS --
 @onready var cam_origin = $CamOrigin
@@ -17,11 +19,14 @@ var current_interactable: Node = null
 
 func _ready():
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
-	# Initialize FSM passing 'self' as the player reference
 	state_machine.init(self)
 
+func _physics_process(delta: float) -> void:
+	# Count down the lockout timer
+	if climb_lockout_timer > 0:
+		climb_lockout_timer -= delta
+
 func _unhandled_input(event):
-	# Camera logic independent of movement state
 	if event is InputEventMouseMotion:
 		rotate_y(-event.relative.x * sensitivity)
 		cam_origin.rotate_x(-event.relative.y * sensitivity)
@@ -29,6 +34,3 @@ func _unhandled_input(event):
 		
 	if Input.is_action_just_pressed("ui_cancel"):
 		get_tree().quit()
-
-	# NOTE: The "Interact" logic has been moved to player_idle.gd
-	# to prevents the "Instant Dismount" bug.
