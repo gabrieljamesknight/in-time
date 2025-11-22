@@ -7,12 +7,16 @@ albedo_color = Color(1, 1, 0.02745098, 1)
 
 [node name="TestLevel" type="Node3D"]
 
-[node name="CSGBox3D" type="CSGBox3D" parent="."]
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.9774159, -0.13155276, 0.16538447, 0, 0.78260815, 0.62251467, -0.21132475, 0.6084557, -0.76493365, 0, 0, 0)
+shadow_enabled = true
+
+[node name="Floor" type="CSGBox3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.13187873, 0.4811219, -0.22745705)
 use_collision = true
 size = Vector3(20, 0.1, 20)
 
-[node name="CSGBox3D" type="CSGBox3D" parent="CSGBox3D"]
+[node name="CollisionWall" type="CSGBox3D" parent="Floor"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 size = Vector3(1, 2, 1)
 
