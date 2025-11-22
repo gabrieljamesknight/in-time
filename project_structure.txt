@@ -1,14 +1,24 @@
 .
+├── assets
+│   ├── audio
+│   ├── maps
+│   ├── models
+│   └── textures
 ├── dump_code.sh
 ├── full_code_dump.txt
 ├── project.godot
 ├── project_structure.txt
 ├── scenes
+│   ├── interactables
+│   │   └── interactive_bike.tscn
 │   ├── levels
 │   │   └── TestLevel.tscn
 │   └── player
 │       └── player.tscn
 ├── scripts
+│   ├── objects
+│   │   ├── interactive_bike.gd
+│   │   └── interactive_bike.gd.uid
 │   ├── player
 │   │   ├── player_controller.gd
 │   │   ├── player_controller.gd.uid
@@ -17,6 +27,8 @@
 │   │       ├── player_air.gd.uid
 │   │       ├── player_bike.gd
 │   │       ├── player_bike.gd.uid
+│   │       ├── player_climb.gd
+│   │       ├── player_climb.gd.uid
 │   │       ├── player_idle.gd
 │   │       ├── player_idle.gd.uid
 │   │       ├── player_run.gd
@@ -29,4 +41,4 @@
 │           └── state_machine.gd.uid
 └── update_structure.sh
 
-9 directories, 21 files
+16 directories, 26 files
