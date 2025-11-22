@@ -1,0 +1,33 @@
+[gd_scene load_steps=6 format=3 uid="uid://cfsy6ply8s0it"]
+
+[ext_resource type="Script" uid="uid://76mbc6icyljt" path="res://scripts/objects/interactive_bike.gd" id="1_eche7"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_hrbtm"]
+size = Vector3(0.5, 1, 1.5)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wxg8l"]
+albedo_color = Color(0.4822567, 0, 0.11490146, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_08d2b"]
+size = Vector3(0.5, 1, 1.5)
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_cjsr3"]
+radius = 1.5
+
+[node name="InteractiveBike" type="StaticBody3D"]
+script = ExtResource("1_eche7")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_hrbtm")
+surface_material_override/0 = SubResource("StandardMaterial3D_wxg8l")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_08d2b")
+
+[node name="InteractionZone" type="Area3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="InteractionZone"]
+shape = SubResource("SphereShape3D_cjsr3")
+
+[connection signal="body_entered" from="InteractionZone" to="." method="_on_interaction_zone_body_entered"]
+[connection signal="body_exited" from="InteractionZone" to="." method="_on_interaction_zone_body_exited"]

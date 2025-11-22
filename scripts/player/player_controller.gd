@@ -8,6 +8,8 @@ extends CharacterBody3D
 # Gravity from Project Settings
 var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
 
+var current_interactable: Node = null
+
 # -- COMPONENTS --
 @onready var cam_origin = $CamOrigin
 @onready var state_machine = $StateMachine
