@@ -12,13 +12,15 @@ func physics_update(delta: float) -> void:
 	if is_snapping:
 		return
 
-	# 1. LEDGE GRAB CHECK
+	# 1. LEDGE GRAB CHECK (The Fix)
+	# Only check for ledge snaps if we are actively falling (velocity.y < 0).
+	# This prevents the "Jump Snapping" bug where you phase through the floor on takeoff.
 	if ledge_timer > 0:
 		ledge_timer -= delta
-		if player.climb_lockout_timer <= 0:
+		if player.velocity.y < 0 and player.climb_lockout_timer <= 0:
 			check_for_ledge_snap()
 	
-	# 2. Standard Climb Check
+	# 2. Standard Climb Check (Jumping AT a wall)
 	if player.climb_lockout_timer <= 0 and player.wall_detector.is_colliding():
 		var collider = player.wall_detector.get_collider()
 		if collider.is_in_group("climbable") and Input.is_action_pressed("move_forward"):
@@ -46,12 +48,14 @@ func check_for_ledge_snap() -> void:
 	var vel_horizontal = Vector3(player.velocity.x, 0, player.velocity.z)
 	var check_dir = -vel_horizontal.normalized()
 	
+	# If we are falling straight down, assume forward is the intent
 	if vel_horizontal.length() < 0.1:
 		check_dir = player.transform.basis.z 
 
 	var space_state = player.get_world_3d().direct_space_state
 	var from_pos = player.global_position
-	# Heel Check
+	
+	# Heel Check: Cast from center, forward slightly, and DOWN.
 	var to_pos = from_pos + (check_dir * 1.0) - Vector3(0, 1.5, 0)
 	
 	var query = PhysicsRayQueryParameters3D.create(from_pos, to_pos)
@@ -72,28 +76,19 @@ func perform_snap_to_wall(hit_pos: Vector3, wall_normal: Vector3) -> void:
 	var tween = get_tree().create_tween()
 	tween.set_parallel(true)
 	
-	# --- FIX: SPATIAL NORMAL CALCULATION ---
-	# Instead of trusting the collision normal (which might be UP if we hit the floor),
-	# we calculate the vector from the HIT POINT to the PLAYER.
-	# This guarantees we find the "Outward" direction relative to the wall geometry.
 	var diff = player.global_position - hit_pos
 	var flat_normal = Vector3(diff.x, 0, diff.z).normalized()
 	
-	# Fallback: If we are directly above the hit (rare), use velocity or wall_normal
 	if flat_normal.is_zero_approx():
-		# Try using the collision normal flattened
 		flat_normal = Vector3(wall_normal.x, 0, wall_normal.z).normalized()
-		# Absolute fallback
 		if flat_normal.is_zero_approx():
 			flat_normal = -player.basis.z
 	
-	# 1. ROTATION
-	# Look AT the wall (Negative Flat Normal)
+	# 1. ROTATION: Look AT the wall
 	var target_basis = Basis.looking_at(-flat_normal, Vector3.UP)
 	tween.tween_property(player, "basis", target_basis, 0.15)
 	
 	# 2. POSITION SNAP
-	# Push out 0.6m from the exact hit point using our robust normal
 	var snap_pos = hit_pos + (flat_normal * 0.6)
 	snap_pos.y = hit_pos.y - 1.25 
 	
