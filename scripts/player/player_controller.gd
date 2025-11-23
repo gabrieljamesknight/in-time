@@ -10,7 +10,10 @@ var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 # Shared Variables
 var current_interactable: Node = null
-var climb_lockout_timer: float = 0.0 # <--- NEW: Blocks climbing when > 0
+var climb_lockout_timer: float = 0.0 
+
+# NEW: Blocks movement until keys are released
+var req_input_release: bool = false 
 
 # -- COMPONENTS --
 @onready var cam_origin = $CamOrigin

@@ -6,6 +6,19 @@ func enter() -> void:
 	player.velocity.z = 0
 
 func physics_update(_delta: float) -> void:
+	# 0. INPUT LOCKOUT CHECK (The Reset Logic)
+	if player.req_input_release:
+		var input_vector = Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
+		if input_vector.length() > 0:
+			# User is still holding keys. 
+			# Do NOT process movement. Stay in Idle (Velocity 0).
+			return
+		else:
+			# User released keys.
+			# Unlock controls.
+			player.req_input_release = false
+			print("Controls Unlocked")
+
 	# 1. Transition: Air (Falling)
 	if not player.is_on_floor():
 		get_parent().change_state("air")
@@ -17,19 +30,12 @@ func physics_update(_delta: float) -> void:
 		get_parent().change_state("air")
 		return
 
-	# 3. Transition: Bike (MOUNT) - UPDATED LOGIC
+	# 3. Transition: Bike (MOUNT)
 	if Input.is_action_just_pressed("interact"):
-		# Check if we are actually standing in a zone (variable set by the InteractiveBike)
 		if player.current_interactable != null:
-			
-			# Optional: Verify it has the method to avoid crashes
 			if player.current_interactable.has_method("interact"):
-				player.current_interactable.interact() # Destroys the world object
-				
-				# Clear the reference so we don't hold onto a deleted object
+				player.current_interactable.interact()
 				player.current_interactable = null
-				
-				# Switch player to Bike physics
 				get_parent().change_state("bike")
 				return
 

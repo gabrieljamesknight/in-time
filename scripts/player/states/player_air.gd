@@ -72,19 +72,29 @@ func perform_snap_to_wall(hit_pos: Vector3, wall_normal: Vector3) -> void:
 	var tween = get_tree().create_tween()
 	tween.set_parallel(true)
 	
-	# 1. ROTATION (Force Upright)
-	var flat_normal = Vector3(wall_normal.x, 0, wall_normal.z).normalized()
+	# --- FIX: SPATIAL NORMAL CALCULATION ---
+	# Instead of trusting the collision normal (which might be UP if we hit the floor),
+	# we calculate the vector from the HIT POINT to the PLAYER.
+	# This guarantees we find the "Outward" direction relative to the wall geometry.
+	var diff = player.global_position - hit_pos
+	var flat_normal = Vector3(diff.x, 0, diff.z).normalized()
+	
+	# Fallback: If we are directly above the hit (rare), use velocity or wall_normal
 	if flat_normal.is_zero_approx():
-		flat_normal = -player.basis.z
+		# Try using the collision normal flattened
+		flat_normal = Vector3(wall_normal.x, 0, wall_normal.z).normalized()
+		# Absolute fallback
+		if flat_normal.is_zero_approx():
+			flat_normal = -player.basis.z
+	
+	# 1. ROTATION
+	# Look AT the wall (Negative Flat Normal)
 	var target_basis = Basis.looking_at(-flat_normal, Vector3.UP)
 	tween.tween_property(player, "basis", target_basis, 0.15)
 	
-	# 2. POSITION SNAP (LOWERED)
-	# Push out 0.6m to clear the wall collision
+	# 2. POSITION SNAP
+	# Push out 0.6m from the exact hit point using our robust normal
 	var snap_pos = hit_pos + (flat_normal * 0.6)
-	
-	# FIX: Lower the player by 1.25m so the RayCast (at Head level) is BELOW the ledge lip.
-	# (Ledge - 1.25) + 1.0 (Ray Height) = Ledge - 0.25 (Safe Hit)
 	snap_pos.y = hit_pos.y - 1.25 
 	
 	tween.tween_property(player, "global_position", snap_pos, 0.15)
