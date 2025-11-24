@@ -43,3 +43,18 @@ func _unhandled_input(event):
 		
 	if Input.is_action_just_pressed("ui_cancel"):
 		get_tree().quit()
+		
+func apply_hit(hit_normal: Vector3, force: float = 10.0) -> void:
+	print("Player Hit!")
+	
+	# If we are on a bike, we trigger the specific bike wipeout logic
+	if state_machine.current_state.name.to_lower() == "bike":
+		# We assume the Bike state has a public 'wipeout' method
+		state_machine.current_state.wipeout(hit_normal)
+	else:
+		# Standard foot-traffic hit (Knockback + Air State)
+		velocity = hit_normal * force
+		velocity.y = 5.0 # Pop them in the air slightly
+		state_machine.change_state("air")
+		
+		# TODO: Add Time Penalty here later

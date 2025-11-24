@@ -1,10 +1,18 @@
-[gd_scene load_steps=4 format=3 uid="uid://crifn7bewjubb"]
+[gd_scene load_steps=6 format=3 uid="uid://crifn7bewjubb"]
 
 [ext_resource type="PackedScene" uid="uid://cbatlw163lxtd" path="res://scenes/player/player.tscn" id="1_86d4f"]
 [ext_resource type="PackedScene" uid="uid://cfsy6ply8s0it" path="res://scenes/interactables/interactive_bike.tscn" id="2_w20ko"]
+[ext_resource type="PackedScene" uid="uid://dj4fstw2jeauk" path="res://scenes/hazards/traffic_car.tscn" id="3_3wv3p"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_86d4f"]
 albedo_color = Color(1, 1, 0.02745098, 1)
+
+[sub_resource type="Curve3D" id="Curve3D_timdk"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, -27.855728, 2.9223428, 4.208048, 0, 0, 0, 0, 0, 0, -8.696049, 2.9717188, -1.5490437, 0, 0, 0, 0, 0, 0, 25.173166, 2.2850552, -2.1099014, 0, 0, 0, 0, 0, 0, -12.304619, 3.9394171, 12.555571),
+"tilts": PackedFloat32Array(0, 0, 0, 0)
+}
+point_count = 4
 
 [node name="TestLevel" type="Node3D"]
 
@@ -32,3 +40,15 @@ material = SubResource("StandardMaterial3D_86d4f")
 
 [node name="InteractiveBike" parent="." instance=ExtResource("2_w20ko")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.549572, 1.0311221, 7.7796316)
+
+[node name="Path3D" type="Path3D" parent="."]
+curve = SubResource("Curve3D_timdk")
+
+[node name="TrafficCar_tscn" parent="Path3D" instance=ExtResource("3_3wv3p")]
+transform = Transform3D(0.28776792, -0.002363638, -0.95769215, 0, 0.99998724, -0.0024680486, 0.9576956, 0.00071022485, 0.28776687, -27.855728, 2.9223428, 4.208048)
+
+[node name="TrafficCar_tscn2" parent="Path3D" instance=ExtResource("3_3wv3p")]
+transform = Transform3D(0.28776792, -0.002363638, -0.95769215, 0, 0.99998724, -0.0024680486, 0.9576956, 0.00071022485, 0.28776687, -27.855728, 2.9223428, 4.208048)
+
+[node name="TrafficCar_tscn3" parent="Path3D" instance=ExtResource("3_3wv3p")]
+transform = Transform3D(0.28776792, -0.002363638, -0.95769215, 0, 0.99998724, -0.0024680486, 0.9576956, 0.00071022485, 0.28776687, -27.855728, 2.9223428, 4.208048)
