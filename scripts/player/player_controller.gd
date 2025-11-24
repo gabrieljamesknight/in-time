@@ -1,9 +1,15 @@
 extends CharacterBody3D
 
 # -- CONFIGURATION --
-@export var speed = 5.0
+@export_group("Movement")
+@export var walk_speed = 5.0
+@export var sprint_speed = 9.0
+@export var accel = 10.0
 @export var jump_velocity = 4.5
-@export var sensitivity = 0.01
+@export var sensitivity = 0.005
+
+# Current active speed (modified by states)
+var speed = 5.0
 
 # Gravity from Project Settings
 var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
@@ -11,14 +17,14 @@ var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
 # Shared Variables
 var current_interactable: Node = null
 var climb_lockout_timer: float = 0.0 
-
-# NEW: Blocks movement until keys are released
 var req_input_release: bool = false 
 
 # -- COMPONENTS --
 @onready var cam_origin = $CamOrigin
 @onready var state_machine = $StateMachine
 @onready var wall_detector = $WallDetector
+# Added reference for visual tilting
+@onready var mesh = $MeshInstance3D
 
 func _ready():
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
