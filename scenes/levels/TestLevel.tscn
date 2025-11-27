@@ -88,7 +88,7 @@ transform = Transform3D(0.28776792, -0.002363638, -0.95769215, 0, 0.99998724, -0
 
 [node name="Hud" parent="." instance=ExtResource("4_j0sv7")]
 script = ExtResource("5_4unv2")
-icon_rotation_offset = 80.0
+icon_rotation_offset = 70.0
 
 [node name="StartZone" type="Area3D" parent="." node_paths=PackedStringArray("target_zone")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.00753, 0, 1.8036919)

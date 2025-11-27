@@ -22,8 +22,19 @@ offset_left = -40.0
 offset_bottom = 40.0
 grow_horizontal = 0
 
-[node name="TimerLabel" type="Label" parent="Control/TimerContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="Control/TimerContainer"]
 layout_mode = 2
+
+[node name="TimerLabel" type="Label" parent="Control/TimerContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="PenaltyLabel" type="Label" parent="Control/TimerContainer/VBoxContainer"]
+modulate = Color(1, 1, 1, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8790251, 0.14645717, 0, 1)
+theme_override_font_sizes/font_size = 12
+text = "-5.0s"
+horizontal_alignment = 2
 
 [node name="StatusContainer" type="MarginContainer" parent="Control"]
 layout_mode = 1
