@@ -6,8 +6,6 @@ signal mission_started
 signal mission_success
 signal mission_failed(reason: String)
 signal crime_committed(thief: Node3D)
-
-# [CRITICAL] This is the signal the HUD is listening for:
 signal penalty_incurred(amount: float)
 
 # --- CONFIG ---
@@ -21,6 +19,7 @@ var time_penalty_caught_stealing: float = 30.0
 # --- STATE ---
 var current_time: float = 0.0
 var is_mission_active: bool = false
+var current_objective_pos: Vector3 = Vector3.ZERO # [NEW] target location
 
 func _process(delta: float) -> void:
 	if is_mission_active:
@@ -30,9 +29,10 @@ func _process(delta: float) -> void:
 		if current_time <= 0:
 			fail_mission("Time Expired")
 
-func start_mission(duration: float) -> void:
-	print("Mission Started!")
+func start_mission(duration: float, target_pos: Vector3) -> void:
+	print("MissionManager: Received Start Command. Target: ", target_pos)
 	current_time = duration
+	current_objective_pos = target_pos # <--- This variable must be updated!
 	is_mission_active = true
 	emit_signal("mission_started")
 
@@ -54,11 +54,7 @@ func fail_mission(reason: String) -> void:
 func apply_penalty(amount: float) -> void:
 	if is_mission_active:
 		current_time -= amount
-		
-		# [CRITICAL] This line triggers the HUD animation. 
-		# If this is missing, the time drops but the UI stays white.
 		emit_signal("penalty_incurred", amount)
-		
 		print("PENALTY APPLIED: -", amount, "s")
 
 func report_theft(thief: Node3D) -> void:

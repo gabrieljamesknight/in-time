@@ -1,17 +1,18 @@
+### scripts/ui/hud.gd
 extends CanvasLayer
 
-@onready var timer_label: Label = $Control/TimerLabel
-@onready var status_label: Label = $Control/StatusLabel
+@onready var timer_label: Label = $Control/TimerContainer/TimerLabel
+@onready var status_label: Label = $Control/StatusContainer/StatusLabel
+@onready var arrow_icon: Control = $Control/ArrowControl/ArrowIcon # Can be TextureRect or Label
 
-# 320x240 Res: Top Right corner target
-var corner_pos: Vector2 = Vector2(230, 10) 
+@export var icon_rotation_offset: float = 90.0
 
 # STATE VARIABLES
 var is_flashing: bool = false
-var flash_tween: Tween # [NEW] We store the tween here to control it
+var flash_tween: Tween 
+var player_ref: Node3D = null
 
 func _ready() -> void:
-	# Connect signals
 	MissionManager.time_updated.connect(_on_time_updated)
 	MissionManager.mission_started.connect(_on_mission_started)
 	MissionManager.mission_failed.connect(_on_mission_failed)
@@ -19,16 +20,44 @@ func _ready() -> void:
 	MissionManager.penalty_incurred.connect(_on_penalty_incurred)
 	
 	status_label.text = "Find Start Zone"
-	status_label.modulate.a = 1.0
-	
 	timer_label.text = "00:00"
-	# Reset color to pure white
-	timer_label.self_modulate = Color(1, 1, 1)
+	arrow_icon.visible = false 
 	
-	# Force pivot to center so it scales from the middle, not top-left
-	# We wait one frame to ensure the label has calculated its size
+	player_ref = get_tree().current_scene.get_node_or_null("Player")
+
 	await get_tree().process_frame
-	timer_label.pivot_offset = timer_label.size / 2
+	# Automatically set the pivot to the exact center of the icon
+	arrow_icon.pivot_offset = arrow_icon.size / 2
+
+func _process(_delta: float) -> void:
+	if MissionManager.is_mission_active and player_ref and arrow_icon.visible:
+		update_compass()
+
+func update_compass() -> void:
+	var cam = get_viewport().get_camera_3d()
+	if not cam: return
+	
+	if Engine.get_physics_frames() % 60 == 0:
+		print("Ply: ", cam.global_position, " | Obj: ", MissionManager.current_objective_pos)
+	
+	# 1. Get flat 2D positions (Ignore Y height)
+	var player_flat = Vector2(cam.global_position.x, cam.global_position.z)
+	var target_flat = Vector2(MissionManager.current_objective_pos.x, MissionManager.current_objective_pos.z)
+	
+	# 2. Calculate the direction to target in global space
+	var dir_to_target = (target_flat - player_flat).normalized()
+	
+	# 3. Get Camera's "Flat" Forward direction
+	# We take the camera's local -Z (Forward) and flatten it
+	var cam_fwd_3d = -cam.global_transform.basis.z
+	var cam_fwd_flat = Vector2(cam_fwd_3d.x, cam_fwd_3d.z).normalized()
+	
+	# 4. Calculate Angle between Camera Look and Target
+	# angle_to() returns the difference in radians
+	var angle = cam_fwd_flat.angle_to(dir_to_target)
+	
+	# 5. Apply to Icon (Convert Offset to Radians)
+	arrow_icon.rotation = angle + deg_to_rad(icon_rotation_offset)
 
 func _on_time_updated(time: float) -> void:
 	var display_time = max(0.0, time)
@@ -36,65 +65,34 @@ func _on_time_updated(time: float) -> void:
 	var mills = int((display_time - seconds) * 100)
 	timer_label.text = "%02d:%02d" % [seconds, mills]
 	
-	# Only update colors if the Penalty Animation is NOT running
 	if not is_flashing:
 		if time < 10.0:
-			timer_label.self_modulate = Color(1, 0, 0) # Low Time Red
+			timer_label.self_modulate = Color(1, 0, 0) 
 		else:
-			timer_label.self_modulate = Color(1, 1, 1) # Normal White
+			timer_label.self_modulate = Color(1, 1, 1) 
 
 func _on_penalty_incurred(_amount: float) -> void:
-	print("HUD: Starting Flash Animation")
-	
-	# 1. LOCK the update loop
 	is_flashing = true
+	if flash_tween: flash_tween.kill()
 	
-	# 2. KILL any existing animation so they don't fight
-	if flash_tween:
-		flash_tween.kill()
-	
-	# 3. CREATE a new fresh tween
 	flash_tween = create_tween()
-	
-	# STEP A: Pop to Red and Scale Up (0.1 seconds)
-	flash_tween.tween_property(timer_label, "self_modulate", Color(1, 0, 0), 0.1).set_trans(Tween.TRANS_CUBIC)
-	flash_tween.parallel().tween_property(timer_label, "scale", Vector2(0.6, 0.6), 0.1).set_trans(Tween.TRANS_BOUNCE)
-	
-	# STEP B: Return to White and Scale Down (0.2 seconds)
+	flash_tween.tween_property(timer_label, "self_modulate", Color(1, 0, 0), 0.1)
+	flash_tween.parallel().tween_property(timer_label, "scale", Vector2(1.2, 1.2), 0.1)
 	flash_tween.tween_property(timer_label, "self_modulate", Color(1, 1, 1), 0.2)
-	flash_tween.parallel().tween_property(timer_label, "scale", Vector2(0.4, 0.4), 0.2)
-	
-	# 4. UNLOCK when finished
+	flash_tween.parallel().tween_property(timer_label, "scale", Vector2(1.0, 1.0), 0.2)
 	flash_tween.tween_callback(func(): is_flashing = false)
 
 func _on_mission_started() -> void:
 	status_label.text = "DELIVER!"
-	
-	var tween = create_tween()
-	
-	# Fade out status text
-	tween.tween_interval(1.5)
-	tween.tween_property(status_label, "modulate:a", 0.0, 1.0)
-	
-	# Move timer to corner
-	var timer_tween = create_tween()
-	timer_tween.set_parallel(true)
-	timer_tween.set_trans(Tween.TRANS_CUBIC)
-	timer_tween.set_ease(Tween.EASE_OUT)
-	
-	timer_tween.tween_property(timer_label, "scale", Vector2(0.4, 0.4), 1.0)
-	timer_tween.tween_property(timer_label, "position", corner_pos, 1.0)
+	status_label.modulate = Color.WHITE
+	arrow_icon.visible = true # Show compass
 
 func _on_mission_failed(reason: String) -> void:
-	_reset_ui("FAILED\n" + reason, Color.RED)
+	status_label.text = "FAILED: " + reason
+	status_label.modulate = Color.RED
+	arrow_icon.visible = false
 
 func _on_mission_success() -> void:
-	_reset_ui("COMPLETE", Color.GREEN)
-
-func _reset_ui(text: String, color: Color) -> void:
-	# Kill flash tween if it's running so it doesn't stuck on red
-	if flash_tween: flash_tween.kill()
-	is_flashing = false
-	
-	status_label.text = text
-	status_label.modulate = color
+	status_label.text = "COMPLETE"
+	status_label.modulate = Color.GREEN
+	arrow_icon.visible = false
