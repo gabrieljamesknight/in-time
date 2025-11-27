@@ -1,0 +1,24 @@
+[gd_scene load_steps=5 format=3 uid="uid://b1l5ltu182nav"]
+
+[ext_resource type="Script" uid="uid://bqhwhlgig85l2" path="res://scripts/hazards/witness_ai.gd" id="1_huseg"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hdmbg"]
+albedo_color = Color(1, 1, 0, 1)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_3l0v2"]
+material = SubResource("StandardMaterial3D_hdmbg")
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_yvhef"]
+
+[node name="Witness" type="CharacterBody3D"]
+script = ExtResource("1_huseg")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("CapsuleMesh_3l0v2")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("CapsuleShape3D_yvhef")
+
+[node name="SpotLight3D" type="SpotLight3D" parent="."]
+light_color = Color(0.7943986, 3.2247603e-06, 9.62615e-07, 1)
+light_energy = 13.041

@@ -5,13 +5,17 @@ signal time_updated(current_time: float)
 signal mission_started
 signal mission_success
 signal mission_failed(reason: String)
+# [NEW] Signal for global game events
+signal crime_committed(thief: Node3D)
 
 # Config
 var max_mission_time: float = 60.0 
 var time_penalty_hit: float = 5.0  
 var time_penalty_wipe: float = 10.0 
 var time_penalty_mugged: float = 15.0 
-var time_penalty_hard_land: float = 3.0 # [NEW] Sprained ankle penalty
+var time_penalty_hard_land: float = 3.0 
+# [NEW] Instant fail or massive penalty for theft in plain sight
+var time_penalty_caught_stealing: float = 30.0 
 
 # State
 var current_time: float = 0.0
@@ -52,3 +56,7 @@ func apply_penalty(amount: float) -> void:
 	if is_mission_active:
 		current_time -= amount
 		print("PENALTY APPLIED: -", amount, "s")
+		
+# [NEW] Helper to report crime
+func report_theft(thief: Node3D) -> void:
+	emit_signal("crime_committed", thief)
