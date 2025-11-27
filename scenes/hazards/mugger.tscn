@@ -1,0 +1,31 @@
+[gd_scene load_steps=6 format=3 uid="uid://dyvxp4rlmkc2k"]
+
+[ext_resource type="Script" uid="uid://befmwsvaicq6b" path="res://scripts/hazards/mugger_ai.gd" id="1_tcb5k"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7tno1"]
+albedo_color = Color(0.63127667, 0.0055903266, 2.8878452e-07, 1)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_o8b6b"]
+material = SubResource("StandardMaterial3D_7tno1")
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_q16tm"]
+radius = 8.119
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_fsqqi"]
+
+[node name="Mugger" type="CharacterBody3D"]
+script = ExtResource("1_tcb5k")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("CapsuleMesh_o8b6b")
+
+[node name="NavigationAgent3D" type="NavigationAgent3D" parent="."]
+debug_enabled = true
+
+[node name="DetectionZone" type="Area3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="DetectionZone"]
+shape = SubResource("CylinderShape3D_q16tm")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("CapsuleShape3D_fsqqi")

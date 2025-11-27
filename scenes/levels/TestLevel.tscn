@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://crifn7bewjubb"]
+[gd_scene load_steps=12 format=3 uid="uid://crifn7bewjubb"]
 
 [ext_resource type="PackedScene" uid="uid://cbatlw163lxtd" path="res://scenes/player/player.tscn" id="1_86d4f"]
 [ext_resource type="PackedScene" uid="uid://cfsy6ply8s0it" path="res://scenes/interactables/interactive_bike.tscn" id="2_w20ko"]
@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://dmaavs7g6v5" path="res://scenes/ui/hud.tscn" id="4_j0sv7"]
 [ext_resource type="Script" uid="uid://mratbeku5rp4" path="res://scripts/ui/hud.gd" id="5_4unv2"]
 [ext_resource type="Script" uid="uid://fjupftl8kcbq" path="res://scripts/objects/mission_zone.gd" id="5_buy1m"]
+[ext_resource type="PackedScene" uid="uid://dyvxp4rlmkc2k" path="res://scenes/hazards/mugger.tscn" id="7_4unv2"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_86d4f"]
 albedo_color = Color(1, 1, 0.02745098, 1)
@@ -20,20 +21,15 @@ point_count = 4
 [sub_resource type="CylinderShape3D" id="CylinderShape3D_4unv2"]
 radius = 12.025879
 
+[sub_resource type="NavigationMesh" id="NavigationMesh_yynx6"]
+vertices = PackedVector3Array(-34.37797, 0.91607475, -80.53699, -34.37797, 0.91607475, 23.963013, 24.372028, 0.91607475, 23.963013, 24.372028, 0.91607475, -80.53699)
+polygons = [PackedInt32Array(3, 2, 0), PackedInt32Array(0, 2, 1)]
+
 [node name="TestLevel" type="Node3D"]
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(-0.9774159, -0.13155276, 0.16538447, 0, 0.78260815, 0.62251467, -0.21132475, 0.6084557, -0.76493365, 0, 0, 0)
 shadow_enabled = true
-
-[node name="Floor" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.604047, 0.4811219, -28.318903)
-use_collision = true
-size = Vector3(61.04785, 0.1, 105.398285)
-
-[node name="CollisionWall" type="CSGBox3D" parent="Floor"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -29.888489, 0.883134, -0.5278454)
-size = Vector3(1, 1.8963623, 106.38048)
 
 [node name="Player" parent="." instance=ExtResource("1_86d4f")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.7579942, 1.51377, 5.1195126)
@@ -76,3 +72,21 @@ type = 1
 [node name="CollisionShape3D" type="CollisionShape3D" parent="EndZone"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14.001797, 0, -41.33342)
 shape = SubResource("CylinderShape3D_4unv2")
+
+[node name="InteractiveBike2" parent="." instance=ExtResource("2_w20ko")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.933318, 1.0311211, -24.76905)
+
+[node name="NavigationRegion3D" type="NavigationRegion3D" parent="."]
+navigation_mesh = SubResource("NavigationMesh_yynx6")
+
+[node name="Floor" type="CSGBox3D" parent="NavigationRegion3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.604047, 0.4811219, -28.318903)
+use_collision = true
+size = Vector3(61.04785, 0.1, 105.398285)
+
+[node name="CollisionWall" type="CSGBox3D" parent="NavigationRegion3D/Floor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -29.888489, 0.883134, -0.5278454)
+size = Vector3(1, 1.8963623, 106.38048)
+
+[node name="Mugger" parent="." instance=ExtResource("7_4unv2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19.492989, 2.9528723, 18.407387)

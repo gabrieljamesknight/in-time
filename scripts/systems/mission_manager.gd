@@ -10,6 +10,7 @@ signal mission_failed(reason: String)
 var max_mission_time: float = 60.0 # Default, changes per mission
 var time_penalty_hit: float = 5.0  # Seconds lost when hit by car
 var time_penalty_wipe: float = 10.0 # Seconds lost when bike crashes
+var time_penalty_mugged: float = 15.0 # High penalty for getting caught in an alley!
 
 # State
 var current_time: float = 0.0
