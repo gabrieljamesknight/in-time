@@ -9,16 +9,21 @@ var braking = 20.0
 var coast_friction = 5.0      
 var turn_speed = 2.0          
 
+# -- REVERSE SETTINGS --
+var max_reverse_speed = 3.0   
+var reverse_accel = 5.0       
+
 # -- TRACTION --
 var traction = 4.0 
 
 # -- VISUALS --
 var lean_amount = 0.0
 var max_lean = 0.3 
+var is_reversing = false # Track our visual state
 
 # -- WIPEOUT SETTINGS --
 var crash_speed_threshold = 12.0 
-var impact_angle_threshold = -0.5 # Forgiving angle (0.0 is 90 deg, -1.0 is head on)
+var impact_angle_threshold = -0.5 
 
 # -- SPAWN SETTINGS --
 var spawn_distance = 1.5 
@@ -27,10 +32,12 @@ var dismount_cooldown = 0.2
 
 # -- TWEEN STORAGE --
 var mount_tween: Tween
+var view_tween: Tween
 
 func enter() -> void:
 	print("State: Bike Mode Activated")
 	dismount_cooldown = 0.2
+	is_reversing = false
 	
 	# Boost on enter
 	player.velocity += -player.transform.basis.z * 5.0
@@ -64,17 +71,30 @@ func physics_update(delta: float) -> void:
 	if turn_input != 0:
 		player.rotate_y(turn_input * turn_speed * speed_ratio * delta)
 		
-	# -- ACCELERATION --
+	# -- ACCELERATION / BRAKING / REVERSE --
 	var throttle = Input.get_axis("move_backward", "move_forward")
 	var forward_dir = -player.transform.basis.z 
 	var current_forward_speed = player.velocity.dot(forward_dir)
+	var currently_reversing_logic = false
 	
 	if throttle > 0:
+		# MOVING FORWARD
 		if current_forward_speed < max_speed:
 			player.velocity += forward_dir * acceleration * delta
+			
 	elif throttle < 0:
-		player.velocity += forward_dir * braking * throttle * delta
+		# BACKWARD INPUT
+		if current_forward_speed > 0.1:
+			# BRAKING
+			player.velocity += forward_dir * braking * throttle * delta
+		else:
+			# REVERSING
+			currently_reversing_logic = true
+			if current_forward_speed > -max_reverse_speed:
+				player.velocity += forward_dir * reverse_accel * throttle * delta
+				
 	else:
+		# COASTING
 		player.velocity = player.velocity.move_toward(Vector3.ZERO, coast_friction * delta)
 
 	# -- TRACTION --
@@ -82,8 +102,18 @@ func physics_update(delta: float) -> void:
 	var lateral_velocity = right_dir * player.velocity.dot(right_dir)
 	player.velocity -= lateral_velocity * traction * delta
 	
+	# -- VISUALS: CAMERA LOGIC --
+	# Check if we need to switch camera modes
+	if currently_reversing_logic != is_reversing:
+		is_reversing = currently_reversing_logic
+		animate_reverse_view(is_reversing)
+
 	# -- VISUALS: LEANING --
-	var target_lean = turn_input * max_lean * speed_ratio
+	# Only lean if we are moving forward. 
+	# If reversing, we want the camera flat (0.0) so it doesn't rotate confusingly.
+	var target_lean = 0.0
+	if not is_reversing:
+		target_lean = turn_input * max_lean * speed_ratio
 	
 	lean_amount = move_toward(lean_amount, target_lean, delta * 2.0)
 	
@@ -93,17 +123,12 @@ func physics_update(delta: float) -> void:
 			player.get_node("CamOrigin").rotation.z = lean_amount * 0.5
 	
 	# -- MOVE --
-	# Capture velocity BEFORE physics resolution stops us
 	var velocity_before_collision = player.velocity
-	
 	player.move_and_slide()
 	
 	# -- CRASH LOGIC --
-	# FIX: Use velocity_before_collision.length() instead of get_real_velocity()
-	# Because if we hit a wall, real_velocity is now 0!
 	if velocity_before_collision.length() > crash_speed_threshold and player.get_slide_collision_count() > 0:
 		check_for_crash(velocity_before_collision)
-		# Safety check: if we crashed, we aren't in bike state anymore
 		if get_parent().current_state != self: 
 			return
 
@@ -129,35 +154,57 @@ func animate_mount(is_mounting: bool) -> void:
 	var mesh = player.get_node_or_null("MeshInstance3D")
 	
 	if is_mounting:
-		# LOWER CamOrigin (Crouch effect)
+		# Bike Mode Default: Lowered slightly (Crouch)
 		if cam_origin: 
 			mount_tween.tween_property(cam_origin, "position:y", -0.4, 0.3)
-		# TILT Mesh forward
+			mount_tween.tween_property(cam_origin, "position:x", 0.0, 0.3)
 		if mesh:
 			mount_tween.tween_property(mesh, "rotation:x", deg_to_rad(-25), 0.3)
 			mount_tween.tween_property(mesh, "position:y", -0.2, 0.3)
 	else:
-		# RESET CamOrigin to 0.0
+		# Reset to Standing
 		if cam_origin: 
 			mount_tween.tween_property(cam_origin, "position:y", 0.0, 0.2)
+			mount_tween.tween_property(cam_origin, "position:x", 0.0, 0.2)
 			mount_tween.tween_property(cam_origin, "rotation:z", 0.0, 0.2)
-		# RESET Mesh
 		if mesh:
 			mount_tween.tween_property(mesh, "rotation:x", 0.0, 0.2)
 			mount_tween.tween_property(mesh, "rotation:z", 0.0, 0.2) 
 			mount_tween.tween_property(mesh, "position:y", 0.0, 0.2)
 
+func animate_reverse_view(entering_reverse: bool) -> void:
+	if view_tween:
+		view_tween.kill()
+		
+	view_tween = get_tree().create_tween()
+	view_tween.set_trans(Tween.TRANS_SINE)
+	view_tween.set_ease(Tween.EASE_OUT)
+	
+	var cam_origin = player.get_node_or_null("CamOrigin")
+	if not cam_origin: return
+	
+	if entering_reverse:
+		# REVERSE MODE:
+		# Move UP (0.2) to see over the back
+		# Move RIGHT (0.6) to look over shoulder
+		view_tween.set_parallel(true)
+		view_tween.tween_property(cam_origin, "position:y", 0.2, 0.4)
+		view_tween.tween_property(cam_origin, "position:x", 0.6, 0.4)
+	else:
+		# FORWARD MODE:
+		# Return to standard bike crouch (-0.4 height, centered)
+		view_tween.set_parallel(true)
+		view_tween.tween_property(cam_origin, "position:y", -0.4, 0.4)
+		view_tween.tween_property(cam_origin, "position:x", 0.0, 0.4)
+
 func check_for_crash(pre_hit_velocity: Vector3) -> void:
 	for i in player.get_slide_collision_count():
 		var collision = player.get_slide_collision(i)
-		# Ignore floor
-		if collision.get_normal().y > 0.5:
-			continue
+		if collision.get_normal().y > 0.5: continue
 			
 		var motion_dir = pre_hit_velocity.normalized()
 		var impact = motion_dir.dot(collision.get_normal())
 		
-		# Impact threshold: -1.0 is head on, 0.0 is glancing
 		if impact < impact_angle_threshold:
 			wipeout(collision.get_normal())
 			return
@@ -165,13 +212,9 @@ func check_for_crash(pre_hit_velocity: Vector3) -> void:
 func wipeout(wall_normal: Vector3) -> void:
 	print("CRASH! Bike Destroyed.")
 	spawn_bike_prop(true)
-	
-	# TIME PENALTY
 	MissionManager.apply_penalty(MissionManager.time_penalty_wipe)
-	
 	player.climb_lockout_timer = 1.0
 	player.velocity = (wall_normal * 15.0) + (Vector3.UP * 1.5)
-	
 	get_parent().change_state("air")
 
 func spawn_bike_prop(is_broken: bool) -> void:
