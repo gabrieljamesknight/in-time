@@ -49,12 +49,12 @@ func apply_hit(hit_normal: Vector3, force: float = 10.0) -> void:
 	
 	# If we are on a bike, we trigger the specific bike wipeout logic
 	if state_machine.current_state.name.to_lower() == "bike":
-		# We assume the Bike state has a public 'wipeout' method
 		state_machine.current_state.wipeout(hit_normal)
 	else:
-		# Standard foot-traffic hit (Knockback + Air State)
+		# Foot hit
 		velocity = hit_normal * force
-		velocity.y = 5.0 # Pop them in the air slightly
+		velocity.y = 5.0 
 		state_machine.change_state("air")
 		
-		# TODO: Add Time Penalty here later
+		# TIME PENALTY
+		MissionManager.apply_penalty(MissionManager.time_penalty_hit)

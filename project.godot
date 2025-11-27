@@ -13,6 +13,10 @@ config_version=5
 config/name="In Time"
 config/features=PackedStringArray("4.5")
 
+[autoload]
+
+MissionManager="*res://scripts/systems/mission_manager.gd"
+
 [display]
 
 window/size/viewport_width=320

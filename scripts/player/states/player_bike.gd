@@ -166,13 +166,10 @@ func wipeout(wall_normal: Vector3) -> void:
 	print("CRASH! Bike Destroyed.")
 	spawn_bike_prop(true)
 	
-	# Lock climbing so we don't accidentally grab the wall we just hit
-	player.climb_lockout_timer = 1.0
+	# TIME PENALTY
+	MissionManager.apply_penalty(MissionManager.time_penalty_wipe)
 	
-	# -- CALCULATE KNOCKBACK --
-	# wall_normal: Points directly away from the wall.
-	# We increase the horizontal force (8.0 -> 15.0) for a harder impact.
-	# We decrease the vertical force (5.0 -> 1.5) just to clear ground friction.
+	player.climb_lockout_timer = 1.0
 	player.velocity = (wall_normal * 15.0) + (Vector3.UP * 1.5)
 	
 	get_parent().change_state("air")
