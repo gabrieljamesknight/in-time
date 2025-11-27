@@ -1,9 +1,6 @@
 class_name InteractiveBike
 extends StaticBody3D
 
-# [NEW] Signal to alert nearby listeners (Witnesses)
-signal being_stolen(bike_position: Vector3)
-
 # Called by the InteractionZone signals
 func _on_interaction_zone_body_entered(body: Node3D) -> void:
 	# Check if the body is the Player

@@ -1,7 +1,7 @@
 [gd_scene load_steps=2 format=3 uid="uid://dmaavs7g6v5"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_wh2we"]
-font_size = 64
+font_size = 48
 
 [node name="Hud" type="CanvasLayer"]
 
@@ -19,10 +19,11 @@ layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -86.0
-offset_right = 86.0
-offset_bottom = 88.0
+offset_left = -62.5
+offset_right = 62.5
+offset_bottom = 67.0
 grow_horizontal = 2
+pivot_offset = Vector2(86, 44)
 text = "00:00"
 label_settings = SubResource("LabelSettings_wh2we")
 

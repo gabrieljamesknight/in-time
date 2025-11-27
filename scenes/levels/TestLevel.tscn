@@ -143,11 +143,11 @@ size = Vector3(61.33557, 9.0401, 4.272376)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -23.546276, 2.9528723, -12.753075)
 
 [node name="Witness" parent="." node_paths=PackedStringArray("patrol_path") instance=ExtResource("8_yynx6")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.0690618, 1.5385109, -38.7799)
+transform = Transform3D(-0.9977068, 0, 0.06768452, 0, 1, 0, -0.06768452, 0, -0.9977068, 6.0690618, 1.5385109, -38.7799)
 patrol_path = NodePath("../Path3D2")
 
 [node name="Witness2" parent="." node_paths=PackedStringArray("patrol_path") instance=ExtResource("8_yynx6")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5342588, 1.9442987, -18.800297)
+transform = Transform3D(-0.9353947, 0, 0.35360536, 0, 1, 0, -0.35360536, 0, -0.9353947, -1.5342588, 1.9442987, -18.800297)
 patrol_path = NodePath("../Path3D2")
 start_waypoint_index = 2
 
