@@ -23,7 +23,6 @@ var req_input_release: bool = false
 @onready var cam_origin = $CamOrigin
 @onready var state_machine = $StateMachine
 @onready var wall_detector = $WallDetector
-# Added reference for visual tilting
 @onready var mesh = $MeshInstance3D
 
 func _ready():
@@ -47,14 +46,40 @@ func _unhandled_input(event):
 func apply_hit(hit_normal: Vector3, force: float = 10.0) -> void:
 	print("Player Hit!")
 	
-	# If we are on a bike, we trigger the specific bike wipeout logic
 	if state_machine.current_state.name.to_lower() == "bike":
 		state_machine.current_state.wipeout(hit_normal)
 	else:
-		# Foot hit
 		velocity = hit_normal * force
 		velocity.y = 5.0 
 		state_machine.change_state("air")
-		
-		# TIME PENALTY
 		MissionManager.apply_penalty(MissionManager.time_penalty_hit)
+
+func die(reason: String) -> void:
+	print("PLAYER DIED: ", reason)
+	
+	# 1. LOCK CONTROLS
+	# Stop physics processing so we can't move
+	set_physics_process(false)
+	set_process_unhandled_input(false)
+	
+	# 2. KILL STATE MACHINE
+	# This prevents the 'Run' or 'Idle' state from trying to stand us back up
+	state_machine.set_physics_process(false)
+	state_machine.set_process(false)
+	
+	# 3. VISUAL SPLAT
+	if mesh:
+		var tween = get_tree().create_tween()
+		tween.set_parallel(true)
+		tween.set_trans(Tween.TRANS_BOUNCE) # A little bounce when hitting floor
+		tween.set_ease(Tween.EASE_OUT)
+		
+		# Rotate 90 degrees on X axis (Faceplant/Lay flat)
+		tween.tween_property(mesh, "rotation:x", deg_to_rad(-90), 0.2)
+		
+		# Lower the mesh slightly so it looks like it's ON the floor, not floating inside it
+		# (Assuming capsule height is 2, center is 0, so -1 is floor. We go to -0.9)
+		tween.tween_property(mesh, "position:y", -0.9, 0.2)
+	
+	# 4. REPORT FAILURE
+	MissionManager.fail_mission(reason)
