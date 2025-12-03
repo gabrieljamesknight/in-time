@@ -1,17 +1,19 @@
+### scripts/ui/hud.gd
 extends CanvasLayer
 
-# Updated path to include the new VBoxContainer
 @onready var timer_label: Label = $Control/TimerContainer/VBoxContainer/TimerLabel
 @onready var penalty_label: Label = $Control/TimerContainer/VBoxContainer/PenaltyLabel
 @onready var status_label: Label = $Control/StatusContainer/StatusLabel
 @onready var arrow_icon: Control = $Control/ArrowControl/ArrowIcon 
 
-@export var icon_rotation_offset: float = 90.0
+# TUNING: 180 flips the Left-pointing image to point Right (0 degrees).
+@export var icon_rotation_offset: float = 180.0
+@export var rotation_speed: float = 25.0 # Increased for responsiveness
 
 # STATE VARIABLES
 var is_flashing: bool = false
 var flash_tween: Tween 
-var penalty_tween: Tween # New tween specifically for the text fade
+var penalty_tween: Tween 
 var player_ref: Node3D = null
 
 func _ready() -> void:
@@ -25,42 +27,56 @@ func _ready() -> void:
 	timer_label.text = "00:00"
 	arrow_icon.visible = false 
 	
-	# Ensure penalty label is invisible on start
 	if penalty_label:
 		penalty_label.modulate.a = 0.0
 	
-	player_ref = get_tree().current_scene.get_node_or_null("Player")
+	player_ref = get_tree().current_scene.find_child("Player", true, false)
 
-	await get_tree().process_frame
-	# Automatically set the pivot to the exact center of the icon
-	if arrow_icon:
-		arrow_icon.pivot_offset = arrow_icon.size / 2
-
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if MissionManager.is_mission_active and player_ref and arrow_icon.visible:
-		update_compass()
+		update_compass(delta)
 
-func update_compass() -> void:
+func update_compass(delta: float) -> void:
 	var cam = get_viewport().get_camera_3d()
 	if not cam: return
 	
-	# 1. Get flat 2D positions (Ignore Y height)
-	var player_flat = Vector2(cam.global_position.x, cam.global_position.z)
-	var target_flat = Vector2(MissionManager.current_objective_pos.x, MissionManager.current_objective_pos.z)
+	arrow_icon.pivot_offset = arrow_icon.size / 2
+	var target_pos_3d = MissionManager.current_objective_pos
+	var target_screen_pos = Vector2.ZERO
 	
-	# 2. Calculate the direction to target in global space
-	var dir_to_target = (target_flat - player_flat).normalized()
+	# --- NEW BEHIND LOGIC ---
+	# We convert the target to the Camera's local space to easily check Z (Depth)
+	var local_target = cam.to_local(target_pos_3d)
 	
-	# 3. Get Camera's "Flat" Forward direction
-	var cam_fwd_3d = -cam.global_transform.basis.z
-	var cam_fwd_flat = Vector2(cam_fwd_3d.x, cam_fwd_3d.z).normalized()
+	if local_target.z > 0:
+		# BEHIND THE CAMERA (Z > 0 means behind in Godot's -Z forward system? 
+		# actually unproject handles the -Z convention, but for manual logic:
+		# Local Z > 0 is usually 'behind' if using standard -Z forward. 
+		# Let's rely on is_position_behind to be 100% sure, then use local x for side.
+		
+		var screen_rect = get_viewport().get_visible_rect().size
+		var center = screen_rect / 2
+		
+		# Force the position to be WAY off-screen at the bottom (Y+)
+		# We use local_target.x to decide if it's Left or Right behind us.
+		# We multiply by a large number to ensure the angle is sharp.
+		var direction_factor = 1000.0
+		target_screen_pos = center + Vector2(sign(local_target.x) * direction_factor, direction_factor)
+		
+	else:
+		# IN FRONT
+		target_screen_pos = cam.unproject_position(target_pos_3d)
 	
-	# 4. Calculate Angle between Camera Look and Target
-	var angle = cam_fwd_flat.angle_to(dir_to_target)
+	# Calculate Angle
+	var arrow_center = arrow_icon.global_position + (arrow_icon.size / 2)
+	var dir_vector = (target_screen_pos - arrow_center).normalized()
 	
-	# 5. Apply to Icon (Convert Offset to Radians)
-	arrow_icon.rotation = angle + deg_to_rad(icon_rotation_offset)
+	var target_angle = dir_vector.angle() + deg_to_rad(icon_rotation_offset)
+	
+	# Apply Smoothing
+	arrow_icon.rotation = lerp_angle(arrow_icon.rotation, target_angle, rotation_speed * delta)
 
+# ... (Rest of the script remains unchanged)
 func _on_time_updated(time: float) -> void:
 	var display_time = max(0.0, time)
 	var seconds = int(display_time)
@@ -74,7 +90,6 @@ func _on_time_updated(time: float) -> void:
 			timer_label.self_modulate = Color(1, 1, 1) 
 
 func _on_penalty_incurred(amount: float) -> void:
-	# --- 1. Flash the Timer (Existing Logic) ---
 	is_flashing = true
 	if flash_tween: flash_tween.kill()
 	
@@ -85,22 +100,14 @@ func _on_penalty_incurred(amount: float) -> void:
 	flash_tween.parallel().tween_property(timer_label, "scale", Vector2(1.0, 1.0), 0.2)
 	flash_tween.tween_callback(func(): is_flashing = false)
 	
-	# --- 2. Show Penalty Text (New Logic) ---
 	if penalty_label:
-		# Format text (e.g., "-5.0s")
 		penalty_label.text = "-%.1fs" % amount
-		
-		# Reset any running animation
 		if penalty_tween: penalty_tween.kill()
 		penalty_tween = create_tween()
-		
-		# Reset alpha to 0 just in case, then snap to 1
 		penalty_label.modulate.a = 0.0
-		
-		# Animation: Fade In fast -> Wait -> Fade Out slow
 		penalty_tween.tween_property(penalty_label, "modulate:a", 1.0, 0.1)
-		penalty_tween.tween_interval(1.5) # Text stays visible for 1.5 seconds
-		penalty_tween.tween_property(penalty_label, "modulate:a", 0.0, 1.0) # Fades out over 1 second
+		penalty_tween.tween_interval(1.5)
+		penalty_tween.tween_property(penalty_label, "modulate:a", 0.0, 1.0)
 
 func _on_mission_started() -> void:
 	status_label.text = "DELIVER!"
